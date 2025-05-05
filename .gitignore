@@ -1,0 +1,15 @@
+# R-specific files
+*.rds
+.Rhistory
+.Rproj.user
+.RData
+.Rds
+
+# renv-specific exclusions
+renv/library/
+renv/cache/
+renv/local/
+
+# Other temporary files
+*.log
+*.bak
