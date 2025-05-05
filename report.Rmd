@@ -1,0 +1,36 @@
+---
+title: "Bitcoin Price Analysis (2019-2025)"
+author: "Joshua Culbert"
+date: "May 2025"
+output: html_document
+---
+
+# Introduction
+This project analyses Bitcoin price trends (2019–2025) using R, focusing on time series, volatility, and Fourier analysis. Data is sourced from Yahoo Finance via `quantmod`.
+
+# Data
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(quantmod)
+library(TTR)
+library(xts)
+library(zoo)
+btc <- readRDS('btc_data.rds')
+```
+
+```{r initial-plot, fig.align = 'centre'}
+btc_df <- data.frame(Date = index(btc), BTC.USD.Close = coredata(btc))
+ggplot(btc_df, aes(x = Date, y = BTC.USD.Close)) +
+  geom_line(colour = "#F7931A") + # Bitcoin orange
+  theme_minimal() +
+  labs(title = 'Bitcoin Closing Prices (2019-2025)',
+       x = 'Date', y = 'Price (USD)') +
+  annotate('text', x = min(btc_df$Date), y = max(btc_df$BTC.USD.Close),
+           label = expression(P[t] == 'Closing Price at Time' ~ t),
+           hjust = 0, vjust = 1)
+```
+
+
+
