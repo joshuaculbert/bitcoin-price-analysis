@@ -13,3 +13,6 @@ renv/local/
 # Other temporary files
 *.log
 *.bak
+figures/*.png
+figures/*.pdf
+figures/*.html
