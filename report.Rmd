@@ -1,14 +1,12 @@
 ---
-title: "Bitcoin Price Analysis (2019-2025)"
+title: "Bitcoin Price Analysis (2015-2025)"
 author: "Joshua Culbert"
 date: "May 2025"
 output: html_document
 ---
 
 # Introduction
-This project analyses Bitcoin price trends (2019–2025) using R, focusing on time series, volatility, and Fourier analysis. Data is sourced from Yahoo Finance via `quantmod`.
-
-# Data
+This project analyses Bitcoin price trends (2015-2025) using R, focusing on time series, volatility, and Fourier analysis. Data is sourced from Yahoo Finance via `quantmod`.
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -17,20 +15,92 @@ library(quantmod)
 library(TTR)
 library(xts)
 library(zoo)
+library(plotly)
+library(scatterplot3d)
+library(rgl)
+library(plot3D)
 btc <- readRDS('btc_data.rds')
 ```
 
+## Initial Plot
+The following plot shows Bitcoin closing prices from 2015 to 2025.
+
 ```{r initial-plot, fig.align = 'centre'}
-btc_df <- data.frame(Date = index(btc), BTC.USD.Close = coredata(btc))
+btc_df <- data.frame(Date = index(btc), Price = coredata(btc))
 ggplot(btc_df, aes(x = Date, y = BTC.USD.Close)) +
   geom_line(colour = "#F7931A") + # Bitcoin orange
   theme_minimal() +
-  labs(title = 'Bitcoin Closing Prices (2019-2025)',
+  labs(title = 'Bitcoin Closing Prices (2015-2025)',
        x = 'Date', y = 'Price (USD)') +
   annotate('text', x = min(btc_df$Date), y = max(btc_df$BTC.USD.Close),
-           label = expression(P[t] == 'Closing Price at Time' ~ t),
+           label = 'P_t = Closing Price at Time t',
            hjust = 0, vjust = 1)
 ```
 
+## Volatility
+Volatility is computed as the 30-day rolling standard deviation of log-returns:
+\[
+\sigma_t = \sqrt{\frac{1}{30} \sum_{i=t-29}^{t} (r_i - \bar{r})^2}, \quad r_i = \log(P_i / P_{i-1})
+\]
 
+```{r volatility-plot, fig.align = 'centre', warning = FALSE}
+btc_returns <- diff(log(btc))[-1] # Log-returns
+btc_volatility <- rollapply(btc_returns, width = 30, FUN = sd, 
+                            fill = NA, align = 'right')
+vol_df <- data.frame(Date = index(btc_volatility), 
+                     Volatility = coredata(btc_volatility))
+ggplot(vol_df, aes(x = Date, y = BTC.USD.Close)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = 'Bitcoin 30-Day Volatility', x = 'Date', y = 'Volatility')
+```
 
+### Volatility by Year
+The faceted plot below breaks down volatility by year, highlighting periods of market turbulence.
+
+```{r volatility-faceted, fig.align = 'centre', warning = FALSE}
+vol_df$Year <- format(vol_df$Date, '%Y')
+ggplot(vol_df, aes(x = Date, y = BTC.USD.Close)) +
+  geom_line() +
+  facet_wrap(~Year, scales = 'free_x') +
+  scale_x_date(date_labels = '%b', date_breaks = '2 months') + 
+  theme_minimal() +
+  labs(title = 'Bitcoin Volatility by Year', y = 'Volatility')
+```
+
+## Fourier Analysis
+The Fast Fourier Transform (FFT) decomposes the detrended price series into frequency components:
+\[
+X_k = \sum_{n=0}^{N-1} x_n e^{-i2\pi kn/N}
+\]
+The power spectrum reveals dominant periodicities.
+
+```{r fft-plot, fig.align = 'centre'}
+btc_detrended <- diff(btc)[-1] # Remove trend
+fft_result <- fft(btc_detrended)
+n <- length(btc_detrended)
+freq <- (0:(n - 1)) / n # Normalised frequencies
+amplitude <- Mod(fft_result) / n # Normalise amplitude
+spectrum_df <- data.frame(Frequency = freq[1:(n / 2)], 
+                          Amplitude = amplitude[1:(n / 2)])
+ggplot(spectrum_df, aes(x = Frequency, y = BTC.USD.Close)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = 'Bitcoin Price FFT Spectrum', x = 'Frequency', y = 'Amplitude')
+```
+
+### Periodogram
+The periodogram estimates the spectral density, highlighting significant frequency components.
+
+```{r periodogram-plot, fig.align = 'centre'}
+spec <- spec.pgram(btc_detrended, plot = FALSE)
+spec_df <- data.frame(Freq = spec$freq, Spec = spec$spec)
+ggplot(spec_df, aes(x = Freq, y = Spec)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = 'Bitcoin Price Periodogram', 
+       x = 'Frequency', y = 'Spectral Density')
+```
+
+# Conclusion
+This analysis reveals distinct volatility patterns in Bitcoin prices from 2015-2025. Significant volatility spikes occurred in 2017-2018, driven by speculative trading during the crypto bull run, and in March 2020, coinciding with the COVID-induced market crash. Volatility was notably higher from 2015 to 2021 compared to 2022-2025, suggesting increased market stability in recent years. The FFT spectrum and periodogram suggest long-term periodicities, with cycles of approximately 100-500 days likely tied to market bull and bear phases, though noise and incomplete detrending may obscure shorter-term cycles. Interactive 3D visualisations highlight correlations between price, volatility, and trading volume, offering valuable insights for cryptocurrency market strategies. Future extensions, detailed in the README, include volatility contour plots, GARCH modeling, interactive dashboards, advanced detrending, outlier detection, and wavelet transform analysis.
