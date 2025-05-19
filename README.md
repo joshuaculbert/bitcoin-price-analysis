@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project analyses Bitcoin price trends from 2015 to 2025 using R. It focuses on time series analysis, volatility, and Fourier transforms, using data from Yahoo Finance via `quantmod`.
+This project analyses Bitcoin price trends from 2015 to 2025 using R. It focuses on time series analysis, volatility, and Fourier transforms, using data from Yahoo Finance via `quantmod`. View the full report: [Bitcoin Price Analysis Report](https://joshuaculbert.github.io/bitcoin-price-analysis/report.html).
 
 ## Features
 - **Price Trends**: Visualises Bitcoin closing prices with moving averages and LOESS trends.
@@ -40,7 +40,7 @@ This project analyses Bitcoin price trends from 2015 to 2025 using R. It focuses
 - `report.Rmd`: R Markdown report summarising findings.
 - `figures/`: Output directory for plots (PNG, PDF).
 - `docs/`: Output directory for the report (`report.html`).
-- `scripts/copy_to_renv.sh`: Bash script for copying R packages to `renv`.
+- `scripts/copy_to_renv.sh`: Bash script for copying R pagckages to `renv`.
 - `btc_data.rds`: Saved Bitcoin price data.
 - `renv/`: `renv` environment for package management.
 
